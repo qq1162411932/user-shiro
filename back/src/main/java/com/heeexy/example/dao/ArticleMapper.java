@@ -9,7 +9,7 @@ import java.util.List;
  * @description: 文章Dao层
  * @date: 2017/10/24 16:06
  */
-public interface ArticleDao {
+public interface ArticleMapper {
     /**
      * 新增文章
      */

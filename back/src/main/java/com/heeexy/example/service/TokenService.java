@@ -2,7 +2,7 @@ package com.heeexy.example.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.heeexy.example.config.exception.CommonJsonException;
-import com.heeexy.example.dao.LoginDao;
+import com.heeexy.example.dao.LoginMapper;
 import com.heeexy.example.dto.session.SessionUserInfo;
 import com.heeexy.example.util.StringTools;
 import com.heeexy.example.util.constants.ErrorEnum;
@@ -18,10 +18,10 @@ import java.util.UUID;
 public class TokenService {
 
     @Autowired
-    Cache<String, SessionUserInfo> cacheMap;
+    Cache<String, SessionUserInfo> sessionUserInfoCache;
 
     @Autowired
-    LoginDao loginDao;
+    LoginMapper loginMapper;
 
     /**
      * 用户登录验证通过后(sso/帐密),生成token,记录用户已登录的状态
@@ -48,7 +48,7 @@ public class TokenService {
             throw new CommonJsonException(ErrorEnum.E_20011);
         }
         log.debug("根据token从缓存中查询用户信息,{}", token);
-        SessionUserInfo info = cacheMap.getIfPresent(token);
+        SessionUserInfo info = sessionUserInfoCache.getIfPresent(token);
         if (info == null) {
             log.info("没拿到缓存 token={}", token);
             throw new CommonJsonException(ErrorEnum.E_20011);
@@ -59,7 +59,7 @@ public class TokenService {
     private void setCache(String token, String username) {
         SessionUserInfo info = getUserInfoByUsername(username);
         log.info("设置用户信息缓存:token={} , username={}, info={}", token, username, info);
-        cacheMap.put(token, info);
+        sessionUserInfoCache.put(token, info);
     }
 
     /**
@@ -68,17 +68,17 @@ public class TokenService {
     public void invalidateToken() {
         String token = MDC.get("token");
         if (!StringTools.isNullOrEmpty(token)) {
-            cacheMap.invalidate(token);
+            sessionUserInfoCache.invalidate(token);
         }
         log.debug("退出登录,清除缓存:token={}", token);
     }
 
     private SessionUserInfo getUserInfoByUsername(String username) {
-        SessionUserInfo userInfo = loginDao.getUserInfo(username);
+        SessionUserInfo userInfo = loginMapper.getUserInfo(username);
         if (userInfo.getRoleIds().contains(1)) {
             //管理员,查出全部按钮和权限码
-            userInfo.setMenuList(loginDao.getAllMenu());
-            userInfo.setPermissionList(loginDao.getAllPermissionCode());
+            userInfo.setMenuList(loginMapper.getAllMenu());
+            userInfo.setPermissionList(loginMapper.getAllPermissionCode());
         }
         return userInfo;
     }

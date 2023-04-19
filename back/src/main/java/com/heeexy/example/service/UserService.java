@@ -1,7 +1,7 @@
 package com.heeexy.example.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.heeexy.example.dao.UserDao;
+import com.heeexy.example.dao.UserMapper;
 import com.heeexy.example.util.CommonUtil;
 import com.heeexy.example.util.constants.ErrorEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +21,15 @@ import java.util.Set;
 @Service
 public class UserService {
     @Autowired
-    private UserDao userDao;
+    private UserMapper userMapper;
 
     /**
      * 用户列表
      */
     public JSONObject listUser(JSONObject jsonObject) {
         CommonUtil.fillPageParam(jsonObject);
-        int count = userDao.countUser(jsonObject);
-        List<JSONObject> list = userDao.listUser(jsonObject);
+        int count = userMapper.countUser(jsonObject);
+        List<JSONObject> list = userMapper.listUser(jsonObject);
         return CommonUtil.successPage(jsonObject, list, count);
     }
 
@@ -37,12 +37,12 @@ public class UserService {
      * 添加用户
      */
     public JSONObject addUser(JSONObject jsonObject) {
-        int exist = userDao.queryExistUsername(jsonObject);
+        int exist = userMapper.queryExistUsername(jsonObject);
         if (exist > 0) {
             return CommonUtil.errorJson(ErrorEnum.E_10009);
         }
-        userDao.addUser(jsonObject);
-        userDao.batchAddUserRole(jsonObject);
+        userMapper.addUser(jsonObject);
+        userMapper.batchAddUserRole(jsonObject);
         return CommonUtil.successJson();
     }
 
@@ -51,7 +51,7 @@ public class UserService {
      * 在添加/修改用户的时候要使用此方法
      */
     public JSONObject getAllRoles() {
-        List<JSONObject> roles = userDao.getAllRoles();
+        List<JSONObject> roles = userMapper.getAllRoles();
         return CommonUtil.successPage(roles);
     }
 
@@ -61,10 +61,10 @@ public class UserService {
     public JSONObject updateUser(JSONObject jsonObject) {
         //不允许修改管理员信息
         if (jsonObject.getIntValue("userId") == 10001) return CommonUtil.successJson();
-        userDao.updateUser(jsonObject);
-        userDao.removeUserAllRole(jsonObject.getIntValue("userId"));
+        userMapper.updateUser(jsonObject);
+        userMapper.removeUserAllRole(jsonObject.getIntValue("userId"));
         if (!jsonObject.getJSONArray("roleIds").isEmpty()) {
-            userDao.batchAddUserRole(jsonObject);
+            userMapper.batchAddUserRole(jsonObject);
         }
         return CommonUtil.successJson();
     }
@@ -73,7 +73,7 @@ public class UserService {
      * 角色列表
      */
     public JSONObject listRole() {
-        List<JSONObject> roles = userDao.listRole();
+        List<JSONObject> roles = userMapper.listRole();
         return CommonUtil.successPage(roles);
     }
 
@@ -82,7 +82,7 @@ public class UserService {
      */
 
     public JSONObject listAllPermission() {
-        List<JSONObject> permissions = userDao.listAllPermission();
+        List<JSONObject> permissions = userMapper.listAllPermission();
         return CommonUtil.successPage(permissions);
     }
 
@@ -92,8 +92,8 @@ public class UserService {
     @Transactional(rollbackFor = Exception.class)
     @SuppressWarnings("unchecked")
     public JSONObject addRole(JSONObject jsonObject) {
-        userDao.insertRole(jsonObject);
-        userDao.insertRolePermission(jsonObject.getString("roleId"), (List<Integer>) jsonObject.get("permissions"));
+        userMapper.insertRole(jsonObject);
+        userMapper.insertRolePermission(jsonObject.getString("roleId"), (List<Integer>) jsonObject.get("permissions"));
         return CommonUtil.successJson();
     }
 
@@ -105,7 +105,7 @@ public class UserService {
     public JSONObject updateRole(JSONObject jsonObject) {
         String roleId = jsonObject.getString("roleId");
         List<Integer> newPerms = (List<Integer>) jsonObject.get("permissions");
-        JSONObject roleInfo = userDao.getRoleAllInfo(jsonObject);
+        JSONObject roleInfo = userMapper.getRoleAllInfo(jsonObject);
         Set<Integer> oldPerms = (Set<Integer>) roleInfo.get("permissionIds");
         //修改角色名称
         updateRoleName(jsonObject, roleInfo);
@@ -122,7 +122,7 @@ public class UserService {
     private void updateRoleName(JSONObject paramJson, JSONObject roleInfo) {
         String roleName = paramJson.getString("roleName");
         if (!roleName.equals(roleInfo.getString("roleName"))) {
-            userDao.updateRoleName(paramJson);
+            userMapper.updateRoleName(paramJson);
         }
     }
 
@@ -137,7 +137,7 @@ public class UserService {
             }
         }
         if (waitInsert.size() > 0) {
-            userDao.insertRolePermission(roleId, waitInsert);
+            userMapper.insertRolePermission(roleId, waitInsert);
         }
     }
 
@@ -152,7 +152,7 @@ public class UserService {
             }
         }
         if (waitRemove.size() > 0) {
-            userDao.removeOldPermission(roleId, waitRemove);
+            userMapper.removeOldPermission(roleId, waitRemove);
         }
     }
 
@@ -162,12 +162,12 @@ public class UserService {
     @Transactional(rollbackFor = Exception.class)
     public JSONObject deleteRole(JSONObject jsonObject) {
         String roleId = jsonObject.getString("roleId");
-        int userCount = userDao.countRoleUser(roleId);
+        int userCount = userMapper.countRoleUser(roleId);
         if (userCount > 0) {
             return CommonUtil.errorJson(ErrorEnum.E_10008);
         }
-        userDao.removeRole(roleId);
-        userDao.removeRoleAllPermission(roleId);
+        userMapper.removeRole(roleId);
+        userMapper.removeRoleAllPermission(roleId);
         return CommonUtil.successJson();
     }
 }

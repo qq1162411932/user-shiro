@@ -1,7 +1,7 @@
 package com.heeexy.example.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.heeexy.example.dao.ArticleDao;
+import com.heeexy.example.dao.ArticleMapper;
 import com.heeexy.example.util.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,14 +17,14 @@ import java.util.List;
 public class ArticleService {
 
     @Autowired
-    private ArticleDao articleDao;
+    private ArticleMapper articleMapper;
 
     /**
      * 新增文章
      */
     @Transactional(rollbackFor = Exception.class)
     public JSONObject addArticle(JSONObject jsonObject) {
-        articleDao.addArticle(jsonObject);
+        articleMapper.addArticle(jsonObject);
         return CommonUtil.successJson();
     }
 
@@ -33,8 +33,8 @@ public class ArticleService {
      */
     public JSONObject listArticle(JSONObject jsonObject) {
         CommonUtil.fillPageParam(jsonObject);
-        int count = articleDao.countArticle(jsonObject);
-        List<JSONObject> list = articleDao.listArticle(jsonObject);
+        int count = articleMapper.countArticle(jsonObject);
+        List<JSONObject> list = articleMapper.listArticle(jsonObject);
         return CommonUtil.successPage(jsonObject, list, count);
     }
 
@@ -43,7 +43,7 @@ public class ArticleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public JSONObject updateArticle(JSONObject jsonObject) {
-        articleDao.updateArticle(jsonObject);
+        articleMapper.updateArticle(jsonObject);
         return CommonUtil.successJson();
     }
 }

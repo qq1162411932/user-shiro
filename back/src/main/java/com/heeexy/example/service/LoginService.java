@@ -2,7 +2,7 @@ package com.heeexy.example.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.heeexy.example.config.exception.CommonJsonException;
-import com.heeexy.example.dao.LoginDao;
+import com.heeexy.example.dao.LoginMapper;
 import com.heeexy.example.dto.session.SessionUserInfo;
 import com.heeexy.example.util.CommonUtil;
 import com.heeexy.example.util.constants.ErrorEnum;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 public class LoginService {
 
     @Autowired
-    private LoginDao loginDao;
+    private LoginMapper loginMapper;
     @Autowired
     private TokenService tokenService;
 
@@ -31,7 +31,7 @@ public class LoginService {
         String username = jsonObject.getString("username");
         String password = jsonObject.getString("password");
         JSONObject info = new JSONObject();
-        JSONObject user = loginDao.checkUser(username, password);
+        JSONObject user = loginMapper.checkUser(username, password);
         if (user == null) {
             throw new CommonJsonException(ErrorEnum.E_10010);
         }

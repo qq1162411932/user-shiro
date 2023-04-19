@@ -10,7 +10,7 @@ import java.util.List;
  * @description: 用户/角色/权限
  * @date: 2017-11-14 15:08:45
  */
-public interface UserDao {
+public interface UserMapper {
     /**
      * 查询用户数量
      */
